@@ -1,48 +1,53 @@
 # Taverners Crafting Directory
+Version 0.4.0-alpha | The Taverners Guild | Interface 16001 (confirm against the live WoW Forever client).
 
-Version 0.3.0-alpha | The Taverners Guild | Client target: Interface 16001 (verify against the current WoW Forever client build).
+The Taverners Crafting Hall is a guild-shared crafter and recipe directory with request coordination, wishlists, recognition, material summaries and portable text backups.
 
-A guild recipe and crafter directory. Members install the addon, scan their professions, then share records through guild addon messages.
-
-## Guild features in this alpha
-- Crafter profiles and profession skill records shared between online guild members.
-- Guild-wide recipe search across profiles received by your character.
-- /tcd sync asks online addon users to share their current profile and shares your own.
-- Main/alt linking with /tcd alt <main character name> and /tcd unalt.
-- Guild crafting requests with /tcd request <item>.
-- Requests are stored locally, shared to online addon users, and can be marked complete with /tcd done <request ID>.
-- Online/offline status is checked against the guild roster.
-- Addon messages are queued to reduce message bursts.
-- Recipe scanner attempts to capture output and reagents where the client exposes TradeSkill schematic data.
-
-## Install and first test
-1. Download the ZIP from GitHub Actions.
-2. Extract TavernersCraftingDirectory into your WoW Forever AddOns folder.
-3. Enable the addon and log in.
-4. Open each profession window and allow the scan to run, or use /tcd scan.
-5. Open /tcd, then select Share with Guild or run /tcd sync.
-6. Ask another guild member with the addon installed to run /tcd sync too.
-
-Every member contributing data needs the addon installed and must be online for the initial exchange. Profiles received by your character are saved locally. There is no central server or automatic cross-account cloud database.
-
-## Main and alt characters
-Log in to the alt and use /tcd alt MainCharacterName. The main character needs to have a profile in your local directory first (log into it with the addon and sync). Use /tcd unalt to remove the link. Alt links are shared with addon users in the guild.
-
-## Requests
-Use /tcd request Primal Life to post a request. The Requests view lists open and completed requests. Use /tcd done <request ID> to mark one complete; request IDs are shown in the Requests view.
-
-## Compatibility and limitations
-- This alpha has not yet been tested in the live WoW Forever client.
-- The client interface number and profession API branch must be confirmed in-game.
-- Profession scanning may need adjustment if the client uses different Classic-era TradeSkill APIs.
-- Some item names may remain blank until the client has cached item data.
-- Guild sharing requires all participating members to have this addon installed and be online during exchange.
-- Online/offline status depends on the guild roster API.
-- Main/alt links are a convenience directory association, not a secure account identity check.
-- No cloud storage, remote web dashboard, or automatic guild-wide persistent database exists yet.
+## Features
+- Crafter profiles, profession skill levels and recipe records.
+- Guild-wide recipe search. Search supports `prof:Tailoring` to filter by profession.
+- Guild sync for profiles, recipes, wishlists, notes and recognition totals.
+- Main/alt links.
+- Crafting request board with open, claimed and completed states.
+- Recipe wishlist shared with online addon users.
+- Material requirement estimates based on the recipe data currently recorded by the addon.
+- Crafter commendations and completed-request contribution counters.
+- Crafter notes stored and synchronised.
+- Hall dashboard with profile, recipe, profession, request and wishlist totals.
+- Backup/export window containing a portable text snapshot of the directory.
 
 ## Commands
-/tcd | /tcd scan | /tcd sync | /tcd request <item> | /tcd alt <main name> | /tcd unalt | /tcd done <request ID> | /tcd status | /tcd help
+- `/tcd` open the directory
+- `/tcd scan` scan the open profession
+- `/tcd sync` exchange available data with online guild members running the addon
+- `/tcd request <item>` post a crafting request
+- `/tcd claim <request ID>` claim a request
+- `/tcd done <request ID>` mark a request complete
+- `/tcd wishlist <item> [quantity]` add a recipe/item to the wishlist
+- `/tcd materials <item> [quantity]` show known materials needed
+- `/tcd commend <crafter name>` record a commendation
+- `/tcd export` open the text backup window
+- `/tcd alt <main name>` and `/tcd unalt` manage alt links
+- `/tcd status` show local directory counts
+- `/tcd help` show commands
 
-## Test feedback
-Please report the exact client build, Lua error text, whether the profession window was open, and which other guild member was online during sync.
+## Installation and use
+1. Extract the addon folder into WoW Forever's AddOns directory.
+2. Enable it at character select.
+3. Open each profession and run `/tcd scan`.
+4. Run `/tcd sync` while guild members with the addon are online.
+5. Use the Hall, Requests and Wishlist views in the main window.
+
+## Important data and compatibility notes
+- This alpha has not been tested in the live WoW Forever client.
+- The scanner depends on profession APIs exposed by the client; recipe/material coverage may vary.
+- Guild addon messages only reach members who are online, in the same guild, and running this addon. Sync is peer-to-peer, not a server.
+- Each character stores its own local saved variables. Received information remains local to that installation until shared onward.
+- The backup window currently provides a human-readable portable text export. It is not yet an automatic cloud backup or one-click restore format.
+- Material summaries are estimates based on known reagent data and may not represent optional reagents or alternative crafting choices.
+- Commendations and contribution counters are community signals, not verified transaction records.
+- Main/alt links are directory associations, not secure account identity verification.
+- Interface number 16001 must be confirmed against the current live client.
+
+## Testing feedback
+Please provide the exact WoW Forever client build and any Lua error text/stack trace. Test with at least two guild members online and running the same addon version.
