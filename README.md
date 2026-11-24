@@ -55,3 +55,8 @@ Shared colours, character identity, saved-variable registration, notifications a
 
 ## Testing feedback
 Please provide the exact WoW Forever client build and any Lua error text/stack trace. Test with at least two guild members online and running the same addon version.
+
+
+## Shared settings (0.6.0-alpha)
+
+The profession auto-share-on-login preference now registers with TavernersCore and appears in `/tsettings`. Existing wishlist, crafting requests, crafter directory, guild sync and export features remain part of this addon.
