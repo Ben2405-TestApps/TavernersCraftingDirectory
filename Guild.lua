@@ -7,7 +7,6 @@ end
 function TCD:RefreshGuildRoster()
   self.GuildOnline = {}
   if not IsInGuild or not IsInGuild() then return end
-  if GuildRoster then GuildRoster() end
   if not GetNumGuildMembers or not GetGuildRosterInfo then return end
   for i=1,GetNumGuildMembers() do
     local name,_,_,_,_,_,_,_,online = GetGuildRosterInfo(i)
