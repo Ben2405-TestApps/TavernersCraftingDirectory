@@ -1,5 +1,5 @@
 # Taverners Crafting Directory
-Version 0.5.0-alpha | The Taverners Guild | Interface 16001 (confirm against the live WoW Forever client).
+Version 0.6.0-alpha | The Taverners Guild | Interface 16001 (confirm against the live WoW Forever client).
 
 The Taverners Crafting Hall is a guild-shared crafter and recipe directory with request coordination, wishlists, recognition, material summaries and portable text backups.
 
