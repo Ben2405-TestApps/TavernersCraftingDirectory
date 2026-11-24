@@ -35,10 +35,13 @@ function TCD:CreateUI()
   local unlink=Btn(left,"Unlink",185,function() TCD:ClearMainCharacter() end); unlink:SetPoint("TOPLEFT",16,-134)
   local cs=CreateFrame("ScrollFrame",nil,left,"UIPanelScrollFrameTemplate"); cs:SetPoint("TOPLEFT",12,-166); cs:SetPoint("BOTTOMRIGHT",-30,14)
   local cc=CreateFrame("Frame",nil,cs); cc:SetSize(175,1); cs:SetScrollChild(cc); self.CrafterContent=cc
-  local search=CreateFrame("EditBox",nil,right,"InputBoxTemplate"); search:SetSize(250,24); search:SetPoint("TOPLEFT",16,-16); search:SetAutoFocus(false); search:SetScript("OnTextChanged",function() TCD.CurrentView="recipes"; TCD:RefreshRecipes() end); self.SearchBox=search
-  local all=Btn(right,"All Recipes",95,function() TCD.CurrentView="recipes"; TCD.selectedCrafter=nil; TCD:RefreshUI() end); all:SetPoint("LEFT",search,"RIGHT",10,0)
-  local requests=Btn(right,"Requests",85,function() TCD:ShowRequests() end); requests:SetPoint("LEFT",all,"RIGHT",6,0)
-  local rs=CreateFrame("ScrollFrame",nil,right,"UIPanelScrollFrameTemplate"); rs:SetPoint("TOPLEFT",12,-54); rs:SetPoint("BOTTOMRIGHT",-30,14)
+  local search=CreateFrame("EditBox",nil,right,"InputBoxTemplate"); search:SetSize(170,24); search:SetPoint("TOPLEFT",16,-16); search:SetAutoFocus(false); search:SetScript("OnTextChanged",function() TCD.CurrentView="recipes"; TCD:RefreshRecipes() end); self.SearchBox=search
+  local all=Btn(right,"All",55,function() TCD.CurrentView="recipes"; TCD.selectedCrafter=nil; TCD:RefreshUI() end); all:SetPoint("LEFT",search,"RIGHT",10,0)
+  local requests=Btn(right,"Requests",65,function() TCD:ShowRequests() end); requests:SetPoint("LEFT",all,"RIGHT",5,0)
+  local wishlist=Btn(right,"Wishlist",65,function() TCD:ShowWishlist() end); wishlist:SetPoint("LEFT",requests,"RIGHT",5,0)
+  local hall=Btn(right,"Hall",50,function() TCD:ShowDashboard() end); hall:SetPoint("TOPLEFT",16,-47)
+  local backup=Btn(right,"Backup / Export",110,function() TCD:ShowExport() end); backup:SetPoint("LEFT",hall,"RIGHT",6,0)
+  local rs=CreateFrame("ScrollFrame",nil,right,"UIPanelScrollFrameTemplate"); rs:SetPoint("TOPLEFT",12,-78); rs:SetPoint("BOTTOMRIGHT",-30,14)
   local rc=CreateFrame("Frame",nil,rs); rc:SetSize(430,1); rs:SetScrollChild(rc); self.RecipeContent=rc
   self:RefreshUI()
 end
@@ -72,7 +75,9 @@ function TCD:RefreshRecipes()
     local p=self.DB.profiles[key]
     for _,r in pairs((p and p.recipes) or {}) do
       local hay=table.concat({r.name or "",r.outputName or "",r.profession or "",p.name or ""}," "):lower()
-      if query=="" or hay:find(query,1,true) then rows[#rows+1]={p=p,r=r} end
+      local profFilter=query:match("^prof:(.+)$")
+      local matches=profFilter and (r.profession or ""):lower():find(profFilter,1,true) or (not profFilter and (query=="" or hay:find(query,1,true)))
+      if matches then rows[#rows+1]={p=p,r=r} end
     end
   end
   table.sort(rows,function(a,b) return (a.r.outputName or a.r.name or "")<(b.r.outputName or b.r.name or "") end)
@@ -97,6 +102,7 @@ function TCD:ShowRequests()
   for _,r in ipairs(self.DB.requests or {}) do
     local line=Text(c,11,(r.player or "Unknown")..": "..(r.item or "").."  ["..(r.status or "open").."]",self.Colors.parchment); line:SetPoint("TOPLEFT",8,y)
     local idLine=Text(c,9,"ID: "..tostring(r.id or "?"),self.Colors.muted); idLine:SetPoint("TOPLEFT",8,y-13)
+    if r.status=="open" and r.id then local claim=Btn(c,"Claim",55,function() TCD:ClaimRequest(r.id) end); claim:SetPoint("TOPRIGHT",-68,y+2) end
     if r.status~="completed" and r.id then local done=Btn(c,"Done",55,function() TCD:CompleteRequest(r.id) end); done:SetPoint("TOPRIGHT",-8,y+2) end
     y=y-34
   end
@@ -110,3 +116,50 @@ function TCD:RefreshUI()
   if self.CurrentView=="requests" then self:ShowRequests() else self:RefreshRecipes() end
 end
 function TCD:ToggleUI() if not self.UI then self:CreateUI() end; if self.UI:IsShown() then self.UI:Hide() else self.UI:Show(); self:RefreshUI() end end
+
+function TCD:ShowDashboard()
+  self.CurrentView="dashboard"
+  local c=self.RecipeContent; if not c then return end
+  for _,child in ipairs({c:GetChildren()}) do child:Hide(); child:SetParent(nil) end
+  local s=self:GetDashboardStats()
+  local y=-8
+  local h=Text(c,18,"THE TAVERNERS CRAFTING HALL",self.Colors.gold); h:SetPoint("TOPLEFT",10,y); y=y-34
+  local intro=Text(c,11,"The guild's shared ledger of skilled hands, recipes and requests.",self.Colors.parchment); intro:SetPoint("TOPLEFT",10,y); y=y-34
+  local lines={
+    "Registered crafter profiles: "..s.profiles,
+    "Known recipes: "..s.recipes,
+    "Professions represented: "..s.professions,
+    "Open / claimed requests: "..s.openRequests,
+    "Wishlist entries: "..s.wishlist
+  }
+  for _,line in ipairs(lines) do local t=Text(c,13,line,self.Colors.parchment); t:SetPoint("TOPLEFT",16,y); y=y-27 end
+  y=y-8
+  local recent=Text(c,14,"Recently updated crafters",self.Colors.gold); recent:SetPoint("TOPLEFT",10,y); y=y-25
+  local profiles={}; for _,p in pairs(self.DB.profiles or {}) do profiles[#profiles+1]=p end
+  table.sort(profiles,function(a,b) return (a.updated or a.lastSeen or 0)>(b.updated or b.lastSeen or 0) end)
+  for i=1,math.min(8,#profiles) do
+    local p=profiles[i]; local t=Text(c,10,(p.name or "Unknown").."  •  "..tostring(p.class or "Crafter"),self.Colors.muted); t:SetPoint("TOPLEFT",16,y); y=y-19
+  end
+  c:SetHeight(math.max(1,-y+20))
+end
+
+function TCD:ShowWishlist()
+  self.CurrentView="wishlist"
+  local c=self.RecipeContent; if not c then return end
+  for _,child in ipairs({c:GetChildren()}) do child:Hide(); child:SetParent(nil) end
+  local y=-8; local h=Text(c,15,"Guild Recipe Wishlist",self.Colors.gold); h:SetPoint("TOPLEFT",8,y); y=y-28
+  for _,w in ipairs(self.DB.wishlist or {}) do
+    local line=Text(c,12,(w.item or "Unknown").." x"..tostring(w.quantity or 1),self.Colors.parchment); line:SetPoint("TOPLEFT",10,y)
+    local by=Text(c,9,"Wanted by "..(w.player or "Unknown").."  •  "..(w.status or "wanted"),self.Colors.muted); by:SetPoint("TOPLEFT",10,y-15)
+    local material=Btn(c,"Materials",75,function()
+      local data,err=TCD:GetMaterialSummary(w.item,w.quantity)
+      if not data then TCD:Print(err) else
+        TCD:Print("Materials for "..w.item..":")
+        for _,m in ipairs(data.materials) do TCD:Print(m.name.." x"..m.quantity) end
+      end
+    end); material:SetPoint("TOPRIGHT",-8,y+2)
+    y=y-40
+  end
+  if #(self.DB.wishlist or {})==0 then local e=Text(c,11,"No wishlist entries. Use /tcd wishlist <item> [quantity].",self.Colors.muted); e:SetPoint("TOPLEFT",10,y) end
+  c:SetHeight(math.max(1,-y+20))
+end
