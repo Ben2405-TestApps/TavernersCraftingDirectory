@@ -13,7 +13,7 @@ local function PlayerKey()
 end
 TCD.PlayerKey = PlayerKey
 function TCD:Print(msg) TCD.Core.Notifications:Print(msg) end
-function TCD:SafeText(v) return tostring(v or ""):gsub("|","/"):gsub("[\r\n]"," "):gsub(";","/") end
+function TCD:SafeText(v) return self.Core.Util:SafeText(v) end
 function TCD:InitDB()
   self.DB = self.Core.Database:Register("TavernersCraftingDB", {profiles={},requests={},altLinks={},settings={shareOnLogin=false}}, self.DB_VERSION)
   self.DB.version = self.DB_VERSION
