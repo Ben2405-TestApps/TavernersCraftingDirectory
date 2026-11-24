@@ -7,6 +7,7 @@ if not TCD.Core then error("TavernersCore is required. Enable/install TavernersC
 TCD.PREFIX = "TCDIR"
 TCD.DB_VERSION = 3
 TCD.Colors = TCD.Core.Theme
+TCD.Core:RegisterModule("CraftingDirectory", TCD)
 local function PlayerKey()
   local player = TCD.Core.Identity:GetPlayer()
   return player.key, player.name, player.realm
