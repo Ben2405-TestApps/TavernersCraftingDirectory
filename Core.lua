@@ -1,23 +1,21 @@
 local ADDON, TCD = ...
 TCD = TCD or {}
 _G.TCD = TCD
-TCD.VERSION = "0.4.0-alpha"
+TCD.VERSION = "0.5.0-alpha"
+TCD.Core = _G.TavernersCore
+if not TCD.Core then error("TavernersCore is required. Enable/install TavernersCore.") end
 TCD.PREFIX = "TCDIR"
 TCD.DB_VERSION = 3
-TCD.Colors = {gold={0.88,0.68,0.28},parchment={0.91,0.84,0.67},muted={0.72,0.66,0.53},green={0.35,0.78,0.42},red={0.85,0.38,0.30}}
+TCD.Colors = TCD.Core.Theme
 local function PlayerKey()
-  local name, realm
-  if UnitFullName then name, realm = UnitFullName("player") end
-  name = name or UnitName("player")
-  realm = realm or GetRealmName() or "Unknown"
-  return name .. "-" .. realm, name, realm
+  local player = TCD.Core.Identity:GetPlayer()
+  return player.key, player.name, player.realm
 end
 TCD.PlayerKey = PlayerKey
-function TCD:Print(msg) DEFAULT_CHAT_FRAME:AddMessage("|cffd9a441[Taverners]|r " .. tostring(msg)) end
+function TCD:Print(msg) TCD.Core.Notifications:Print(msg) end
 function TCD:SafeText(v) return tostring(v or ""):gsub("|","/"):gsub("[\r\n]"," "):gsub(";","/") end
 function TCD:InitDB()
-  if type(TavernersCraftingDB) ~= "table" then TavernersCraftingDB = {} end
-  self.DB = TavernersCraftingDB
+  self.DB = self.Core.Database:Register("TavernersCraftingDB", {profiles={},requests={},altLinks={},settings={shareOnLogin=false}}, self.DB_VERSION)
   self.DB.version = self.DB_VERSION
   self.DB.profiles = self.DB.profiles or {}
   self.DB.requests = self.DB.requests or {}
@@ -36,15 +34,12 @@ function TCD:OnEvent(event,...)
     local loaded = ...
     if loaded ~= ADDON then return end
     self:InitDB()
-    if C_ChatInfo and C_ChatInfo.RegisterAddonMessagePrefix then C_ChatInfo.RegisterAddonMessagePrefix(self.PREFIX) end
+    self.Core.Comm:Register(self.PREFIX, function(msg, channel, sender) TCD:HandleAddonMessage(msg, channel, sender) end)
     self:Print("Crafting Directory " .. self.VERSION .. " loaded. Type /tcd.")
     self:RefreshProfessionData()
     if self.DB.settings.shareOnLogin then C_Timer.After(8,function() TCD:RequestGuildSync() end) end
   elseif event == "PLAYER_LOGIN" then
     C_Timer.After(3,function() TCD:RefreshProfessionData(); if GuildRoster then GuildRoster() end; TCD:RefreshGuildRoster() end)
-  elseif event == "CHAT_MSG_ADDON" then
-    local prefix,msg,channel,sender = ...
-    if prefix == self.PREFIX then self:HandleAddonMessage(msg,channel,sender) end
   elseif event == "TRADE_SKILL_SHOW" or event == "TRADE_SKILL_LIST_UPDATE" then
     C_Timer.After(0.6,function() TCD:ScanOpenProfession() end)
   elseif event == "GUILD_ROSTER_UPDATE" then
