@@ -12,8 +12,8 @@ jobs:
       - name: Prepare addon folder
         run: |
           mkdir -p dist/TavernersCraftingDirectory
-          cp TavernersCraftingDirectory.toc Core.lua Guild.lua Scanner.lua Sync.lua UI.lua README.md dist/TavernersCraftingDirectory/
-      - name: Create ZIP
+          cp TavernersCraftingDirectory.toc Core.lua Guild.lua Scanner.lua Features.lua Sync.lua UI.lua README.md dist/TavernersCraftingDirectory/
+      - name: Validate Lua syntax\n        run: |\n          sudo apt-get update\n          sudo apt-get install -y lua5.1\n          find dist/TavernersCraftingDirectory -name '*.lua' -print0 | xargs -0 -n1 luac5.1 -p\n      - name: Create ZIP
         run: |
           cd dist
           zip -r ../TavernersCraftingDirectory-${GITHUB_REF_NAME}.zip TavernersCraftingDirectory
