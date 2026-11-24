@@ -113,7 +113,7 @@ function TCD:RefreshUI()
   if not self.UI then return end
   self:RefreshGuildRoster()
   self:RefreshCrafters()
-  if self.CurrentView=="requests" then self:ShowRequests() else self:RefreshRecipes() end
+  if self.CurrentView=="requests" then self:ShowRequests() elseif self.CurrentView=="dashboard" then self:ShowDashboard() elseif self.CurrentView=="wishlist" then self:ShowWishlist() else self:RefreshRecipes() end
 end
 function TCD:ToggleUI() if not self.UI then self:CreateUI() end; if self.UI:IsShown() then self.UI:Hide() else self.UI:Show(); self:RefreshUI() end end
 
