@@ -2,11 +2,12 @@
 ## Title: Taverners Crafting Directory
 ## Notes: Guild-wide crafter and recipe directory for The Taverners Guild.
 ## Author: The Taverners Guild
-## Version: 0.3.0-alpha
+## Version: 0.4.0-alpha
 ## SavedVariables: TavernersCraftingDB
 ## X-Category: Guild
 Core.lua
 Guild.lua
 Scanner.lua
+Features.lua
 Sync.lua
 UI.lua
