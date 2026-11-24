@@ -1,5 +1,5 @@
 # Taverners Crafting Directory
-Version 0.4.0-alpha | The Taverners Guild | Interface 16001 (confirm against the live WoW Forever client).
+Version 0.5.0-alpha | The Taverners Guild | Interface 16001 (confirm against the live WoW Forever client).
 
 The Taverners Crafting Hall is a guild-shared crafter and recipe directory with request coordination, wishlists, recognition, material summaries and portable text backups.
 
@@ -32,11 +32,15 @@ The Taverners Crafting Hall is a guild-shared crafter and recipe directory with 
 - `/tcd help` show commands
 
 ## Installation and use
-1. Extract the addon folder into WoW Forever's AddOns directory.
-2. Enable it at character select.
-3. Open each profession and run `/tcd scan`.
-4. Run `/tcd sync` while guild members with the addon are online.
-5. Use the Hall, Requests and Wishlist views in the main window.
+1. Install **Taverners Core** into `Interface/AddOns/TavernersCore`.
+2. Extract this addon folder into WoW Forever's AddOns directory.
+3. Ensure Taverners Core is enabled; it is a required dependency.
+4. Enable both addons at character select.
+5. Open each profession and run `/tcd scan`.
+6. Run `/tcd sync` while guild members with the addon are online.
+7. Use the Hall, Requests and Wishlist views in the main window.
+
+Shared colours, character identity, saved-variable registration, notifications and rate-limited addon messaging are provided by Taverners Core.
 
 ## Important data and compatibility notes
 - This alpha has not been tested in the live WoW Forever client.
