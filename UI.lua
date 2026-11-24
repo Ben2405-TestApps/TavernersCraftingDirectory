@@ -28,11 +28,15 @@ function TCD:CreateUI()
   local right=MakePanel(f,490,420); right:SetPoint("TOPRIGHT",-18,-72)
   local head=Text(left,14,"Guild Crafters",self.Colors.gold); head:SetPoint("TOPLEFT",16,-16)
   local scan=Btn(left,"Scan Open Profession",185,function() TCD:RefreshProfessionData(); TCD:ScanOpenProfession(); TCD:RefreshUI() end); scan:SetPoint("TOPLEFT",16,-43)
-  local sync=Btn(left,"Share with Guild",185,function() TCD:ShareProfile() end); sync:SetPoint("TOPLEFT",scan,"BOTTOMLEFT",0,-6)
-  local cs=CreateFrame("ScrollFrame",nil,left,"UIPanelScrollFrameTemplate"); cs:SetPoint("TOPLEFT",12,-112); cs:SetPoint("BOTTOMRIGHT",-30,14)
+  local sync=Btn(left,"Sync with Guild",185,function() TCD:RequestGuildSync() end); sync:SetPoint("TOPLEFT",scan,"BOTTOMLEFT",0,-6)
+  local alt=CreateFrame("EditBox",nil,left,"InputBoxTemplate"); alt:SetSize(118,24); alt:SetPoint("TOPLEFT",16,-105); alt:SetAutoFocus(false); alt:SetText("")
+  alt:SetScript("OnEnterPressed",function(self) TCD:SetMainCharacter(self:GetText()); self:ClearFocus() end)
+  local link=Btn(left,"Link",55,function() TCD:SetMainCharacter(alt:GetText()) end); link:SetPoint("LEFT",alt,"RIGHT",5,0)
+  local unlink=Btn(left,"Unlink",185,function() TCD:ClearMainCharacter() end); unlink:SetPoint("TOPLEFT",16,-134)
+  local cs=CreateFrame("ScrollFrame",nil,left,"UIPanelScrollFrameTemplate"); cs:SetPoint("TOPLEFT",12,-166); cs:SetPoint("BOTTOMRIGHT",-30,14)
   local cc=CreateFrame("Frame",nil,cs); cc:SetSize(175,1); cs:SetScrollChild(cc); self.CrafterContent=cc
-  local search=CreateFrame("EditBox",nil,right,"InputBoxTemplate"); search:SetSize(250,24); search:SetPoint("TOPLEFT",16,-16); search:SetAutoFocus(false); search:SetScript("OnTextChanged",function() TCD:RefreshRecipes() end); self.SearchBox=search
-  local all=Btn(right,"All Recipes",95,function() TCD.selectedCrafter=nil; TCD:RefreshUI() end); all:SetPoint("LEFT",search,"RIGHT",10,0)
+  local search=CreateFrame("EditBox",nil,right,"InputBoxTemplate"); search:SetSize(250,24); search:SetPoint("TOPLEFT",16,-16); search:SetAutoFocus(false); search:SetScript("OnTextChanged",function() TCD.CurrentView="recipes"; TCD:RefreshRecipes() end); self.SearchBox=search
+  local all=Btn(right,"All Recipes",95,function() TCD.CurrentView="recipes"; TCD.selectedCrafter=nil; TCD:RefreshUI() end); all:SetPoint("LEFT",search,"RIGHT",10,0)
   local requests=Btn(right,"Requests",85,function() TCD:ShowRequests() end); requests:SetPoint("LEFT",all,"RIGHT",6,0)
   local rs=CreateFrame("ScrollFrame",nil,right,"UIPanelScrollFrameTemplate"); rs:SetPoint("TOPLEFT",12,-54); rs:SetPoint("BOTTOMRIGHT",-30,14)
   local rc=CreateFrame("Frame",nil,rs); rc:SetSize(430,1); rs:SetScrollChild(rc); self.RecipeContent=rc
@@ -47,9 +51,12 @@ function TCD:RefreshCrafters()
     local p=self.DB.profiles[key]; local n=0; for _ in pairs(p.recipes or {}) do n=n+1 end
     local b=CreateFrame("Button",nil,c); b:SetSize(170,28); b:SetPoint("TOPLEFT",2,y)
     b.text=b:CreateFontString(nil,"OVERLAY","GameFontNormal"); b.text:SetPoint("LEFT",4,0); b.text:SetJustifyH("LEFT")
-    b.text:SetText((p.name or key).." ("..n..")")
+    local online=TCD:IsProfileOnline(p)
+    local mainKey=TCD:GetMainKey(key)
+    local suffix=(mainKey~=key and " [alt]" or "")
+    b.text:SetText((online and "|cff55dd66●|r " or "|cff888888○|r ")..(p.name or key)..suffix.." ("..n..")")
     if key==self.currentKey then b.text:SetTextColor(0.95,0.78,0.40) end
-    b:SetScript("OnClick",function() TCD.selectedCrafter=key; TCD:RefreshUI() end)
+    b:SetScript("OnClick",function() TCD.selectedCrafter=key; TCD.CurrentView="recipes"; TCD:RefreshUI() end)
     y=y-30
   end
   c:SetHeight(math.max(1,-y+10))
@@ -83,14 +90,23 @@ function TCD:RefreshRecipes()
   c:SetHeight(math.max(1,-y+10))
 end
 function TCD:ShowRequests()
+  self.CurrentView="requests"
   local c=self.RecipeContent; if not c then return end
   for _,child in ipairs({c:GetChildren()}) do child:Hide(); child:SetParent(nil) end
   local y=-5; local h=Text(c,14,"Guild Crafting Requests",self.Colors.gold); h:SetPoint("TOPLEFT",8,y); y=y-28
   for _,r in ipairs(self.DB.requests or {}) do
-    local line=Text(c,11,(r.player or "Unknown")..": "..(r.item or ""),self.Colors.parchment); line:SetPoint("TOPLEFT",8,y); y=y-22
+    local line=Text(c,11,(r.player or "Unknown")..": "..(r.item or "").."  ["..(r.status or "open").."]",self.Colors.parchment); line:SetPoint("TOPLEFT",8,y)
+    local idLine=Text(c,9,"ID: "..tostring(r.id or "?"),self.Colors.muted); idLine:SetPoint("TOPLEFT",8,y-13)
+    if r.status~="completed" and r.id then local done=Btn(c,"Done",55,function() TCD:CompleteRequest(r.id) end); done:SetPoint("TOPRIGHT",-8,y+2) end
+    y=y-34
   end
   if #(self.DB.requests or {})==0 then local e=Text(c,11,"No requests yet. Use /tcd request <item>.",self.Colors.muted); e:SetPoint("TOPLEFT",8,y) end
   c:SetHeight(math.max(1,-y+20))
 end
-function TCD:RefreshUI() if not self.UI then return end; self:RefreshCrafters(); self:RefreshRecipes() end
+function TCD:RefreshUI()
+  if not self.UI then return end
+  self:RefreshGuildRoster()
+  self:RefreshCrafters()
+  if self.CurrentView=="requests" then self:ShowRequests() else self:RefreshRecipes() end
+end
 function TCD:ToggleUI() if not self.UI then self:CreateUI() end; if self.UI:IsShown() then self.UI:Hide() else self.UI:Show(); self:RefreshUI() end end
