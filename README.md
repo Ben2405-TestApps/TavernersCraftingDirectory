@@ -47,7 +47,7 @@ Shared colours, character identity, saved-variable registration, notifications a
 - The scanner depends on profession APIs exposed by the client; recipe/material coverage may vary.
 - Guild addon messages only reach members who are online, in the same guild, and running this addon. Sync is peer-to-peer, not a server.
 - Each character stores its own local saved variables. Received information remains local to that installation until shared onward.
-- The backup window currently provides a human-readable portable text export. It is not yet an automatic cloud backup or one-click restore format.
+- The standalone Crafting Directory export window provides a human-readable text export. Taverners Core 1.3.0 also provides `/tbackup` to export and restore all currently registered Taverners addon stores; neither workflow is a cloud backup.
 - Material summaries are estimates based on known reagent data and may not represent optional reagents or alternative crafting choices.
 - Commendations and contribution counters are community signals, not verified transaction records.
 - Main/alt links are directory associations, not secure account identity verification.
