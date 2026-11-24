@@ -22,6 +22,7 @@ function TCD:InitDB()
   self.DB.requests = self.DB.requests or {}
   self.DB.altLinks = self.DB.altLinks or {}
   self.DB.settings = self.DB.settings or {shareOnLogin=false}
+  self.Core.Settings:Register("CraftingDirectory", self.DB.settings, {shareOnLogin={label="Share profession updates on login",type="boolean",default=false}})
   if self.InitFeatures then self:InitFeatures() end
   local player = self.Core.Identity:GetPlayer()
   self.profile, self.currentKey = self.Core.Profiles:Ensure(self.DB, player)
