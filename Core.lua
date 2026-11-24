@@ -7,7 +7,8 @@ TCD.DB_VERSION = 2
 TCD.Colors = {gold={0.88,0.68,0.28},parchment={0.91,0.84,0.67},muted={0.72,0.66,0.53}}
 
 local function PlayerKey()
-  local name, realm = UnitFullName and UnitFullName("player")
+  local name, realm
+  if UnitFullName then name, realm = UnitFullName("player") end
   name = name or UnitName("player")
   realm = realm or GetRealmName() or "Unknown"
   return name .. "-" .. realm, name, realm
