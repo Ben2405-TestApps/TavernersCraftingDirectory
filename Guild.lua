@@ -1,51 +1,44 @@
 local ADDON, TCD = ...
 TCD = TCD or _G.TCD
-local function ShortName(name)
-  if not name then return nil end
-  return (name:match("^([^%-]+)") or name):lower()
-end
+local Core = _G.TavernersCore
+
 function TCD:RefreshGuildRoster()
-  self.GuildOnline = {}
-  if not IsInGuild or not IsInGuild() then return end
-  if not GetNumGuildMembers or not GetGuildRosterInfo then return end
-  for i=1,GetNumGuildMembers() do
-    local name,_,_,_,_,_,_,_,online = GetGuildRosterInfo(i)
-    if name then self.GuildOnline[ShortName(name)]=online and true or false; self.GuildOnline[name:lower()]=online and true or false end
-  end
+  Core.Guild:RefreshRoster()
+  self.GuildOnline = Core.Guild.online
 end
 function TCD:IsProfileOnline(profile)
-  if not profile then return false end
-  local short=ShortName(profile.name)
-  return short and self.GuildOnline and (self.GuildOnline[short] or self.GuildOnline[(profile.name or ""):lower()]) or false
+  return profile and Core.Guild:IsOnline(profile.name) or false
 end
 function TCD:GetMainKey(key)
-  local seen={}
-  while self.DB.altLinks[key] and not seen[key] do seen[key]=true; key=self.DB.altLinks[key] end
-  return key
+  return Core.Profiles:GetMainKey(self.DB, key)
 end
 function TCD:GetAltKeys(mainKey)
-  local result={}; mainKey=self:GetMainKey(mainKey)
-  for alt,target in pairs(self.DB.altLinks or {}) do if self:GetMainKey(target)==mainKey then result[#result+1]=alt end end
-  table.sort(result); return result
+  return Core.Profiles:GetAltKeys(self.DB, mainKey)
 end
 function TCD:SetMainCharacter(mainName)
-  local wanted=ShortName(mainName); local found
-  for key,p in pairs(self.DB.profiles or {}) do
-    if key:lower()==mainName:lower() or (p.name or ""):lower()==wanted then found=key; break end
+  local wanted = Core.Identity:ShortName(mainName)
+  local found
+  for key, profile in pairs(self.DB.profiles or {}) do
+    if key:lower() == mainName:lower() or (profile.name or ""):lower() == wanted then found = key; break end
   end
-  if not found then self:Print("No saved profile found for "..mainName..". Log into that character with the addon and sync it first."); return end
-  if found==self.currentKey then self:ClearMainCharacter(); return end
-  self.DB.altLinks[self.currentKey]=self:GetMainKey(found)
+  if not found then
+    self:Print("No saved profile found for " .. mainName .. ". Log into that character with the addon and sync it first.")
+    return
+  end
+  if found == self.currentKey then self:ClearMainCharacter(); return end
+  Core.Profiles:Link(self.DB, self.currentKey, found)
   self:BroadcastAltLink()
-  self:Print(self.profile.name.." is now linked as an alt of "..(self.DB.profiles[self:GetMainKey(found)].name or found)..".")
+  self:Print(self.profile.name .. " is now linked as an alt of " .. (self.DB.profiles[self:GetMainKey(found)].name or found) .. ".")
   if self.RefreshUI then self:RefreshUI() end
 end
 function TCD:ClearMainCharacter()
-  self.DB.altLinks[self.currentKey]=nil
+  Core.Profiles:Unlink(self.DB, self.currentKey)
   self:BroadcastAltLink()
   self:Print("Main/alt link cleared for this character.")
   if self.RefreshUI then self:RefreshUI() end
 end
 function TCD:BroadcastAltLink()
-  if self.SendGuildPacket then self:SendGuildPacket(table.concat({"A",self:SafeText(self.currentKey),self:SafeText(self.DB.altLinks[self.currentKey] or "")},"|")) end
+  if self.SendGuildPacket then
+    self:SendGuildPacket(table.concat({"A", self:SafeText(self.currentKey), self:SafeText(self.DB.altLinks[self.currentKey] or "")}, "|"))
+  end
 end
