@@ -40,7 +40,7 @@ function TCD:OnEvent(event,...)
     self:RefreshProfessionData()
     if self.DB.settings.shareOnLogin then C_Timer.After(8,function() TCD:RequestGuildSync() end) end
   elseif event == "PLAYER_LOGIN" then
-    C_Timer.After(3,function() TCD:RefreshProfessionData(); TCD:RefreshGuildRoster() end)
+    C_Timer.After(3,function() TCD:RefreshProfessionData(); if GuildRoster then GuildRoster() end; TCD:RefreshGuildRoster() end)
   elseif event == "CHAT_MSG_ADDON" then
     local prefix,msg,channel,sender = ...
     if prefix == self.PREFIX then self:HandleAddonMessage(msg,channel,sender) end
