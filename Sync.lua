@@ -41,6 +41,9 @@ function TCD:ShareProfile()
     if self:SendGuildPacket(msg) then sent=sent+1 end
   end
   self:SendGuildPacket(table.concat({"A",self:SafeText(self.currentKey),self:SafeText(self.DB.altLinks[self.currentKey] or "")},"|"))
+  for _,w in ipairs(self.DB.wishlist or {}) do self:SendGuildPacket(table.concat({"W",self:SafeText(w.id),self:SafeText(w.player),self:SafeText(w.realm),self:SafeText(w.item),tostring(w.quantity or 1)},"|")) end
+  for key,stats in pairs(self.DB.crafterStats or {}) do self:SendGuildPacket(table.concat({"K",self:SafeText(key),tostring(stats.commendations or 0)},"|")) end
+  for key,note in pairs(self.DB.crafterNotes or {}) do self:SendGuildPacket(table.concat({"N",self:SafeText(key),self:SafeText(note)},"|")) end
   self:Print("Queued your profile and "..sent.." recipe records for guild sharing.")
 end
 function TCD:HandleAddonMessage(msg,channel,sender)
@@ -69,8 +72,18 @@ function TCD:HandleAddonMessage(msg,channel,sender)
     for _,r in ipairs(self.DB.requests) do if r.id==f[2] then exists=true; break end end
     if not exists then table.insert(self.DB.requests,1,{id=f[2],player=f[3],realm=f[4],item=f[5],created=time(),status="open",sender=sender}); while #self.DB.requests>50 do table.remove(self.DB.requests) end; self:Print("Crafting request from "..f[3]..": "..f[5]) end
   elseif kind=="D" and f[2] then
-    for _,r in ipairs(self.DB.requests or {}) do if r.id==f[2] then r.status="completed"; r.completed=time() end end
+    for _,r in ipairs(self.DB.requests or {}) do
+      if r.id==f[2] then
+        r.status="completed"; r.completed=time()
+        if r.claimedBy then
+          local key
+          for k,p in pairs(self.DB.profiles) do if p.name==r.claimedBy then key=k end end
+          if key then local stats=self.DB.crafterStats[key] or {commendations=0,completed=0}; stats.completed=(stats.completed or 0)+1; self.DB.crafterStats[key]=stats end
+        end
+      end
+    end
   end
+  if self.HandleFeaturePacket then self:HandleFeaturePacket(f) end
   if self.RefreshUI then self:RefreshUI() end
 end
 function TCD:CreateRequest(item)
