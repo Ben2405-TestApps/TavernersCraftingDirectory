@@ -1,7 +1,7 @@
 local ADDON, TCD = ...
 TCD = TCD or {}
 _G.TCD = TCD
-TCD.VERSION = "0.3.0-alpha"
+TCD.VERSION = "0.4.0-alpha"
 TCD.PREFIX = "TCDIR"
 TCD.DB_VERSION = 3
 TCD.Colors = {gold={0.88,0.68,0.28},parchment={0.91,0.84,0.67},muted={0.72,0.66,0.53},green={0.35,0.78,0.42},red={0.85,0.38,0.30}}
@@ -23,6 +23,7 @@ function TCD:InitDB()
   self.DB.requests = self.DB.requests or {}
   self.DB.altLinks = self.DB.altLinks or {}
   self.DB.settings = self.DB.settings or {shareOnLogin=false}
+  if self.InitFeatures then self:InitFeatures() end
   local key,name,realm = PlayerKey()
   self.DB.profiles[key] = self.DB.profiles[key] or {key=key,name=name,realm=realm,professions={},recipes={}}
   self.profile = self.DB.profiles[key]
@@ -66,9 +67,14 @@ SlashCmdList.TAVERNERSCRAFTINGDIRECTORY=function(msg)
   elseif cmd=="alt" and rest~="" then TCD:SetMainCharacter(rest)
   elseif cmd=="unalt" then TCD:ClearMainCharacter()
   elseif cmd=="done" and rest~="" then TCD:CompleteRequest(rest)
+  elseif cmd=="wishlist" and rest~="" then local item,qty=rest:match("^(.-)%s+(%d+)$"); TCD:AddWishlist(item or rest,qty)
+  elseif cmd=="claim" and rest~="" then TCD:ClaimRequest(rest)
+  elseif cmd=="materials" and rest~="" then local item,qty=rest:match("^(.-)%s+(%d+)$"); local data,err=TCD:GetMaterialSummary(item or rest,qty); if data then TCD:Print("Materials for "..(item or rest)..":"); for _,m in ipairs(data.materials) do TCD:Print(m.name.." x"..m.quantity) end else TCD:Print(err) end
+  elseif cmd=="commend" and rest~="" then local wanted=rest:lower(); for key,p in pairs(TCD.DB.profiles) do if key:lower()==wanted or (p.name or ""):lower()==wanted then TCD:AddCommendation(key); return end end; TCD:Print("Crafter profile not found.")
+  elseif cmd=="export" then TCD:ShowExport()
   elseif cmd=="status" then
     local n,p=0,0; for _ in pairs(TCD.profile.recipes or {}) do n=n+1 end; for _ in pairs(TCD.DB.profiles or {}) do p=p+1 end
     TCD:Print(n.." recipes on this character; "..p.." crafter profiles stored.")
-  elseif cmd=="help" then TCD:Print("/tcd | scan | sync | request <item> | alt <main name> | unalt | done <request ID> | status")
+  elseif cmd=="help" then TCD:Print("/tcd | scan | sync | request <item> | wishlist <item> [qty] | claim <request ID> | materials <item> [qty] | commend <crafter> | export | alt <main> | unalt | done <request ID> | status")
   else TCD:ToggleUI() end
 end
