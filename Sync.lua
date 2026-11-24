@@ -3,25 +3,12 @@ TCD = TCD or _G.TCD
 local function Split(s,sep)
   local out={}; for part in (s..sep):gmatch("(.-)"..sep) do out[#out+1]=part end; return out
 end
-TCD.SendQueue = TCD.SendQueue or {}
-local queueRunning=false
 function TCD:SendGuildPacket(message)
-  if not IsInGuild or not IsInGuild() then self:Print("Join a guild before syncing."); return false end
-  if type(message)~="string" or #message>240 then self:Print("A sync record was too long and was skipped."); return false end
-  table.insert(self.SendQueue,message)
-  if not queueRunning then
-    queueRunning=true
-    local function Pump()
-      local nextMessage=table.remove(TCD.SendQueue,1)
-      if nextMessage then
-        if C_ChatInfo and C_ChatInfo.SendAddonMessage then C_ChatInfo.SendAddonMessage(TCD.PREFIX,nextMessage,"GUILD")
-        elseif SendAddonMessage then SendAddonMessage(TCD.PREFIX,nextMessage,"GUILD") end
-        C_Timer.After(0.35,Pump)
-      else queueRunning=false end
-    end
-    C_Timer.After(0.1,Pump)
+  if not self.Core or not self.Core.Comm then
+    self:Print("Taverners Core communication service is unavailable.")
+    return false
   end
-  return true
+  return self.Core.Comm:Send(self.PREFIX, message, "GUILD")
 end
 function TCD:RequestGuildSync()
   if not IsInGuild or not IsInGuild() then self:Print("You need to be in a guild to sync."); return end
