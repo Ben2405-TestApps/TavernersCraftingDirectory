@@ -1,0 +1,11 @@
+## Interface: 120001
+## Title: Taverners Crafting Directory
+## Notes: Guild-wide crafter and recipe directory for The Taverners Guild.
+## Author: The Taverners Guild
+## Version: 0.2.0-alpha
+## SavedVariables: TavernersCraftingDB
+## X-Category: Guild
+Core.lua
+Scanner.lua
+Sync.lua
+UI.lua
