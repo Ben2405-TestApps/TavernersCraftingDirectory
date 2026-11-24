@@ -12,7 +12,7 @@ jobs:
       - name: Prepare addon folder
         run: |
           mkdir -p dist/TavernersCraftingDirectory
-          cp TavernersCraftingDirectory.toc Core.lua Scanner.lua Sync.lua UI.lua README.md dist/TavernersCraftingDirectory/
+          cp TavernersCraftingDirectory.toc Core.lua Guild.lua Scanner.lua Sync.lua UI.lua README.md dist/TavernersCraftingDirectory/
       - name: Create ZIP
         run: |
           cd dist
