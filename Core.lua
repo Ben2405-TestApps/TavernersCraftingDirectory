@@ -22,12 +22,10 @@ function TCD:InitDB()
   self.DB.altLinks = self.DB.altLinks or {}
   self.DB.settings = self.DB.settings or {shareOnLogin=false}
   if self.InitFeatures then self:InitFeatures() end
-  local key,name,realm = PlayerKey()
-  self.DB.profiles[key] = self.DB.profiles[key] or {key=key,name=name,realm=realm,professions={},recipes={}}
-  self.profile = self.DB.profiles[key]
+  local player = self.Core.Identity:GetPlayer()
+  self.profile, self.currentKey = self.Core.Profiles:Ensure(self.DB, player)
   self.profile.professions = self.profile.professions or {}
   self.profile.recipes = self.profile.recipes or {}
-  self.currentKey = key
 end
 function TCD:OnEvent(event,...)
   if event == "ADDON_LOADED" then
