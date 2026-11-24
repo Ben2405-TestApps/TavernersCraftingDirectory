@@ -1,4 +1,4 @@
-## Interface: 120001
+## Interface: 16001
 ## Title: Taverners Crafting Directory
 ## Notes: Guild-wide crafter and recipe directory for The Taverners Guild.
 ## Author: The Taverners Guild
