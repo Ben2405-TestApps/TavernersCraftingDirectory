@@ -59,7 +59,7 @@ function TCD:HandleAddonMessage(msg,channel,sender)
   elseif kind=="R" and f[2] and f[4] then
     local key=f[2]; local p=self.DB.profiles[key] or {key=key,professions={},recipes={}}
     p.recipes=p.recipes or {}; local mats={}
-    for _,v in ipairs(Split(f[7] or "",",")) do local n,q=v:match("^(.-) x(%d+)$"); if n then mats[#mats+1]={name=n,quantity=tonumber(q)} end end
+    for _,v in ipairs(Split(f[6] or "",",")) do local n,q=v:match("^(.-) x(%d+)$"); if n then mats[#mats+1]={name=n,quantity=tonumber(q)} end end
     p.recipes[f[4]..":"..(f[3] or "")]={name=f[4],profession=f[3],outputName=f[5],reagents=mats,outputCount=tonumber(f[7]) or 1,shared=true}
     p.lastSeen=time(); self.DB.profiles[key]=p
   elseif kind=="A" and f[2] then
